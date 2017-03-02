@@ -7,9 +7,8 @@ cc.Class({
         top_node: cc.Node,
         horizontal_node: cc.Node,
         vertical_node: cc.Node,
-        click_node: cc.Node,
 
-        tbutton: cc.Node,
+        test_node: cc.Node,
 
         event_start: null,
         judged_node: cc.Node,
@@ -18,16 +17,16 @@ cc.Class({
     onLoad: function() {
         let self = this;
 
-        self.tbutton.on(cc.Node.EventType.TOUCH_START, function(ev) {
-            cc.log("按钮 start");
-        });
-        self.tbutton.on(cc.Node.EventType.TOUCH_MOVE, function(ev) {
-            cc.log("按钮 move");
-        });
-        self.tbutton.on(cc.Node.EventType.TOUCH_END, function(ev) {
-            cc.log("按钮 end");
-        });
+        if (self.test_node !== null) {
+            tool.on_click(self.test_node, function() {
+                cc.log("test clicked");
+            });
+        }
 
+        // // 赋值
+        // self.top_node = top_node;
+        // self.horizontal_node = h_node;
+        // self.vertical_node = v_node;
 
         self.top_node.on(cc.Node.EventType.TOUCH_START, function(ev) {
             cc.log("top start");
@@ -69,12 +68,6 @@ cc.Class({
             // if (self.judged_node !== null) {
             //     self.judged_node.dispatchEvent(ev);
             // }
-            // 如果是点击事件
-            if (self.judged_node === null) {
-                self.click_node.dispatchEvent(self.event_start);
-                self.click_node.dispatchEvent(ev);
-            }
-
             self.judged_node = null;
         });
         self.top_node.on(cc.Node.EventType.TOUCH_CANCEL, function(ev) {
