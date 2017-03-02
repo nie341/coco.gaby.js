@@ -8,6 +8,9 @@ let tool = {
         node.active = true;
     },
 
+    // on_click: function(node, func) {
+    //     node.on(cc.Node.EventType.TOUCH_END, func);
+    // },
     on_click: function(node, func) {
         node.on(cc.Node.EventType.TOUCH_END, function(ev) {
             let start = ev.getStartLocation();
