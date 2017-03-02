@@ -8,14 +8,43 @@ cc.Class({
 
         view_center: cc.Node,
 
-        view_left: cc.Node,
-        center_content: cc.Node,
+        center_content: cc.Node, // 真正的内容填充区
         back: cc.Node,
 
-        view_right: cc.Node,
+        default_left: null,
+        default_right: null,
+
+        extra_left: null,
+        extra_right: null,
 
         org_x: null,
         reset_time: 0.2,
+    },
+
+
+    get_left_width: function() {
+        let self = this;
+        let w = 0;
+        // 挂载额外的节点
+        if (self.extra_left !== null) {
+            // 使用节点宽度
+            w = self.extra_left.width;
+
+        }
+        // 有默认节点
+        else if (self.default_left !== null) {
+            // 使用默认节点宽度
+            w = self.default_left.width;
+        }
+        // 没有任何节点
+        else {
+            w = 0;
+        }
+        return w;
+    },
+
+    get_right_width: function() {
+        return 0;
     },
 
 
@@ -36,7 +65,7 @@ cc.Class({
         }
 
         // 鼠标移动
-        self.content.on(cc.Node.EventType.TOUCH_MOVE, function(event) {
+        let move = function(event) {
 
             // 当前点
             var x = event.getLocationX();
@@ -49,38 +78,40 @@ cc.Class({
             var dt = x - xp;
 
             // 获取左右控件的宽度
-            var w_left = self.view_left.width;
-            var w_right = self.view_right.width;
-            // cc.log("content=" + self.content.x + "dt=" + dt);
+            let w_left = self.get_left_width();
+            let w_right = self.get_right_width();
+            cc.log("left = " + w_left + " right = " + w_right);
+            cc.log("content.x=" + self.content.x + "dt=" + dt);
 
             // 移动
             self.content.x = self.content.x + dt;
 
             // 修复
-            if (self.content.x < self.org_x - w_left) {
-                self.content.x = self.org_x - w_left;
+            if (self.content.x < self.org_x - w_right) {
+                self.content.x = self.org_x - w_right;
             }
-            if (self.content.x > self.org_x + w_right) {
-                self.content.x = self.org_x + w_right;
+            if (self.content.x > self.org_x + w_left) {
+                self.content.x = self.org_x + w_left;
             }
-        });
-
+        };
+        self.view_center.on(cc.Node.EventType.TOUCH_MOVE, move);
+        self.back.on(cc.Node.EventType.TOUCH_MOVE, move);
 
         // 手指放开
         var touch_end = function(ev) {
-            var half_l = self.view_left.width / 2;
-            var half_r = self.view_right.width / 2;
+            var half_l = self.get_left_width() / 2;
+            var half_r = self.get_right_width() / 2;
             var action = null;
             // 如果显示右边的菜单
-            if (self.content.x < self.org_x - half_l) {
-                action = cc.moveTo(self.reset_time, cc.p(self.org_x - self.view_right.width, self.content.y));
+            if (self.content.x < self.org_x - half_r) {
+                action = cc.moveTo(self.reset_time, cc.p(self.org_x - self.get_right_width(), self.content.y));
                 // 显示遮罩层
                 cc.log("显示遮罩");
                 tool.show_node(self.back);
             }
             // 如果显示左边的
-            else if (self.content.x > self.org_x + half_r) {
-                action = cc.moveTo(self.reset_time, cc.p(self.org_x + self.view_left.width, self.content.y));
+            else if (self.content.x > self.org_x + half_l) {
+                action = cc.moveTo(self.reset_time, cc.p(self.org_x + self.get_left_width(), self.content.y));
                 // 显示遮罩层
                 cc.log("显示遮罩");
                 tool.show_node(self.back);
@@ -104,38 +135,43 @@ cc.Class({
 
         // 点击了back
         tool.on_click(self.back, function(event) {
-            cc.log("点击了遮罩层");
-
-            // 还原
-            var action = cc.moveTo(self.reset_time, cc.p(self.org_x, self.content.y));
-            var seq = cc.sequence(action, cc.callFunc(function() {
-                // 隐藏遮罩层
-                tool.hide_node(self.back);
-            }, this))
-            self.content.runAction(seq);
+            touch_end(event);
         });
 
+        // 初始化的时候extra是关闭的
+        tool.hide_node(self.extra_left);
+        tool.hide_node(self.extra_right);
     },
 
-    add_left: function(node) {
+    add_default_left: function(node) {
         var self = this;
-        self.view_left.addChild(node);
+        self.default_left = node;
+        self.content.addChild(node);
+        self.default_left.x = 0 - self.view_center.width / 2;
     },
 
-    add_right: function(node) {
-        var self = this;
-        self.view_right.addChild(node);
-    },
+    add_default_right: function(node) {},
 
     add_center: function(node) {
         var self = this;
         self.center_content.addChild(node);
     },
 
+    show_extra_left: function(node) {
+        var self = this;
+        // 添加额外的view
+        self.extra_left = node;
+        self.content.addChild(node);
+        self.extra_left.x = 0 - self.view_center.width / 2;
+
+        // 隐藏默认的view
+        tool.hide(self.default_left);
+    },
+
     // 显示左边的菜单
     show_left: function() {
         var self = this;
-        var action = cc.moveTo(self.reset_time, cc.p(self.org_x + self.view_left.width, self.content.y));
+        var action = cc.moveTo(self.reset_time, cc.p(self.org_x + self.get_left_width(), self.content.y));
         self.content.runAction(action);
         tool.show_node(self.back);
     },
@@ -143,7 +179,7 @@ cc.Class({
     // 显示右边菜单
     show_right: function() {
         var self = this;
-        var action = cc.moveTo(self.reset_time, cc.p(self.org_x - self.view_right.width, self.content.y));
+        var action = cc.moveTo(self.reset_time, cc.p(self.org_x - self.get_right_width(), self.content.y));
         self.content.runAction(action);
         tool.show_node(self.back);
     },
