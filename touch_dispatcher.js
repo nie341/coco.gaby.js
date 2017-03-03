@@ -11,7 +11,8 @@ cc.Class({
         test_node: cc.Node,
 
         event_start: null,
-        judged_node: cc.Node,
+        moved: null,
+        judged_node: null,
     },
 
     onLoad: function() {
@@ -30,24 +31,6 @@ cc.Class({
             });
         }
 
-        // // 赋值
-        // self.top_node = top_node;
-        // self.horizontal_node = h_node;
-        // self.vertical_node = v_node;
-
-        // self.top_node = self.test_node;
-
-        self.top_node.on(cc.Node.EventType.TOUCH_START, function(ev) {
-            cc.log("top start");
-            self.event_start = ev;
-
-            cc.log("start : " , ev);
-
-            // // 停止事件传递
-            // ev.stopPropagation();
-        });
-
-
         self.top_node.on(cc.Node.EventType.TOUCH_MOVE, function(ev) {
             cc.log("top move");
             let start = ev.getStartLocation();
@@ -57,6 +40,11 @@ cc.Class({
 
             // 如果是第一次移动
             if (self.judged_node === null && xspan + yspan > 20) {
+                // 已经移动超过距离了
+                if (self.moved !== true) {
+                    self.moved = true;
+                }
+
                 // 横向距离更大
                 if (xspan >= yspan) {
                     // 标志为横向
@@ -78,10 +66,13 @@ cc.Class({
         });
         self.top_node.on(cc.Node.EventType.TOUCH_END, function(ev) {
             cc.log("top end");
-            // if (self.judged_node !== null) {
-            //     self.judged_node.dispatchEvent(ev);
-            // }
+            if (self.moved !== true) {
+                cc.log("-------- top clicked -------- " + ev.getCurrentTarget().name);
+                // cc.eventManager.pauseTarget(self.top_node, false);
+            }
+            self.event_start = null;
             self.judged_node = null;
+            self.moved = null;
         });
         self.top_node.on(cc.Node.EventType.TOUCH_CANCEL, function(ev) {
             cc.log("top cancel");
@@ -90,7 +81,9 @@ cc.Class({
             // }
             // //停止事件监听
             // ev.stopPropagation();
+            self.event_start = null;
             self.judged_node = null;
+            self.moved = null;
         });
 
 
