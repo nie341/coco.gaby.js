@@ -19,7 +19,14 @@ cc.Class({
 
         if (self.test_node !== null) {
             tool.on_click(self.test_node, function() {
-                cc.log("test clicked");
+                cc.log(" ================== test clicked");
+            });
+
+            self.test_node.on(cc.Node.EventType.TOUCH_START, function(ev) {
+                cc.log("test start");
+            });
+            self.test_node.on(cc.Node.EventType.TOUCH_MOVE, function(ev) {
+                cc.log("test move");
             });
         }
 
@@ -28,15 +35,21 @@ cc.Class({
         // self.horizontal_node = h_node;
         // self.vertical_node = v_node;
 
+        // self.top_node = self.test_node;
+
         self.top_node.on(cc.Node.EventType.TOUCH_START, function(ev) {
             cc.log("top start");
             self.event_start = ev;
+
+            cc.log("start : " , ev);
+
             // // 停止事件传递
             // ev.stopPropagation();
         });
 
 
         self.top_node.on(cc.Node.EventType.TOUCH_MOVE, function(ev) {
+            cc.log("top move");
             let start = ev.getStartLocation();
             let end = ev.getLocation();
             let xspan = Math.abs(start.x - end.x);
