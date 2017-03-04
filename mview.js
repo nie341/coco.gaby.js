@@ -255,6 +255,11 @@ cc.Class({
         self.extra_left.width = node.width;
         self.extra_left.x = 0 - self.view_center.width / 2;
 
+        cc.log("extra_left.x = " + self.extra_left.x);
+        cc.log("view_center.x = " + self.view_center.x);
+
+        // 显示
+        tool.show_node(self.extra_left);
         // 滑动到左边
         self.show_any_left();
     },
@@ -273,6 +278,8 @@ cc.Class({
         self.extra_right.width = node.width;
         self.extra_right.x = 0 + self.view_center.width / 2;
 
+        // 显示
+        tool.show_node(self.extra_right);
         // 滑动到右边
         self.show_any_right();
     },
@@ -284,9 +291,10 @@ cc.Class({
 
         // 清除额外的菜单
         self.extra_left.removeAllChildren(true);
-        self.extra_left.width = 0;
+        tool.hide_node(self.extra_left);
 
         // 显示默认菜单
+        tool.show_node(self.default_left)
         let action = cc.moveTo(self.reset_time, cc.p(self.org_x + self.get_left_width(), self.content.y));
         self.content.runAction(action);
         tool.show_node(self.back);
@@ -300,6 +308,7 @@ cc.Class({
         self.extra_right.width = 0;
 
         // 显示默认菜单
+        tool.show_node(self.default_right)
         let action = cc.moveTo(self.reset_time, cc.p(self.org_x - self.get_left_width(), self.content.y));
         self.content.runAction(action);
         tool.show_node(self.back);
