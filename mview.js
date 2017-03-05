@@ -80,9 +80,10 @@ cc.Class({
         let dt = x - xp;
 
         // 判断是否有移动
-        let start = event.getStartLocation();
         if (self.moved !== true) {
-            self.moved = (Math.abs(start.x - event.x) > 4);
+            let x1 = event.getStartLocation().x;
+            let x2 = event.getLocation().x;
+            self.moved = (Math.abs(x1 - x2) > 4);
         }
 
         // 获取左右控件的宽度
@@ -103,33 +104,25 @@ cc.Class({
         }
     },
 
-    show_any_left: function() {
+    move_any_left: function() {
         let self = this;
         let l = self.get_left_width();
         cc.log("显示左边");
         let action = cc.moveTo(self.reset_time, cc.p(self.org_x + l, self.content.y));
         self.content.runAction(action);
-        // 显示遮罩层
-        tool.show_node(self.back);
     },
-
-    show_any_right: function() {
+    move_any_right: function() {
         let self = this;
         let r = self.get_right_width();
         cc.log("显示右边");
         let action = cc.moveTo(self.reset_time, cc.p(self.org_x - r, self.content.y));
         self.content.runAction(action);
-        // 显示遮罩层
-        tool.show_node(self.back);
     },
-
-    show_center: function() {
+    move_center: function() {
         let self = this;
         cc.log("显示中间");
         let action = cc.moveTo(self.reset_time, cc.p(self.org_x, self.content.y));
         self.content.runAction(action);
-        // 隐藏遮罩层
-        tool.hide_node(self.back);
     },
 
     // 手指放开
@@ -141,15 +134,17 @@ cc.Class({
         var half_r = r / 2;
         // 如果显示右边的菜单
         if (r > 1 && self.content.x < self.org_x - half_r) {
-            self.show_any_right();
+            self.move_any_right();
+            self._show();
         }
         // 如果显示左边的
         else if (l > 1 && self.content.x > self.org_x + half_l) {
-            self.show_any_left();
+            self.move_any_left();
+            self._show();
         }
         // 否则中间
         else {
-            self.show_center();
+            self.move_center();
         }
 
         // 清空移动过的痕迹
@@ -161,7 +156,7 @@ cc.Class({
         let self = this;
 
         // 隐藏背景
-        tool.hide_node(self.back);
+        self._hide();
 
         // 调整主界面为手机尺寸宽度
         let canvas = cc.find("Canvas");
@@ -177,15 +172,15 @@ cc.Class({
         });
         self.back.on(cc.Node.EventType.TOUCH_START, function(ev) {
             cc.log("back start");
+            ev.stopPropagation();
         });
 
         self.view_center.on(cc.Node.EventType.TOUCH_MOVE, function(ev) {
-            cc.log("center move");
             self.touch_move(ev);
         });
         self.back.on(cc.Node.EventType.TOUCH_MOVE, function(ev) {
-            cc.log("back move");
             self.touch_move(ev);
+            ev.stopPropagation();
         });
 
         self.view_center.on(cc.Node.EventType.TOUCH_CANCEL, function(event) {
@@ -195,6 +190,7 @@ cc.Class({
         self.back.on(cc.Node.EventType.TOUCH_CANCEL, function(event) {
             cc.log("back cancel");
             self.touch_end(event);
+            event.stopPropagation();
         });
 
         tool.on_click(self.view_center, function(event) {
@@ -203,19 +199,37 @@ cc.Class({
         });
         tool.on_click(self.back, function(event) {
             cc.log("back end");
+            // 如果在蒙层上移动
             if (self.moved === true) {
                 cc.log("back 转touch end");
+                self.moved = null;
                 self.touch_end(event);
-            } else {
-                cc.log("back 中间");
-                self.show_center();
             }
+            // 如果没移动,那么回中间
+            else {
+                cc.log("back 中间");
+                self.move_center();
+                self._hide();
+            }
+            event.stopPropagation();
         });
 
         // 初始化的时候extra是关闭的
         tool.hide_node(self.extra_left);
         tool.hide_node(self.extra_right);
     },
+
+    _hide: function() {
+        cc.log("隐藏back");
+        let self = this;
+        tool.hide_node(self.back);
+    },
+    _show: function() {
+        let self = this;
+        cc.log("显示back");
+        tool.show_node(self.back);
+    },
+
 
     add_center: function(node) {
         var self = this;
@@ -297,7 +311,7 @@ cc.Class({
         tool.show_node(self.default_left)
         let action = cc.moveTo(self.reset_time, cc.p(self.org_x + self.get_left_width(), self.content.y));
         self.content.runAction(action);
-        tool.show_node(self.back);
+        self._show();
     },
 
     show_default_right: function() {
@@ -311,7 +325,7 @@ cc.Class({
         tool.show_node(self.default_right)
         let action = cc.moveTo(self.reset_time, cc.p(self.org_x - self.get_left_width(), self.content.y));
         self.content.runAction(action);
-        tool.show_node(self.back);
+        self._show();
     },
 
 });
