@@ -30,6 +30,14 @@ let tool = {
         cc.director.loadScene(name);
     },
 
+    make_list: function(content, prefab, number, init_func){
+      for (let i = 0; i < number; ++i) {
+          let item = cc.instantiate(prefab);
+          init_func(item);
+          content.addChild(item);
+      }
+    },
+
 };
 
 module.exports = tool;
