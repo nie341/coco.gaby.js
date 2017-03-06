@@ -145,6 +145,7 @@ cc.Class({
         // 否则中间
         else {
             self.move_center();
+            self._hide();
         }
 
         // 清空移动过的痕迹
@@ -275,7 +276,8 @@ cc.Class({
         // 显示
         tool.show_node(self.extra_left);
         // 滑动到左边
-        self.show_any_left();
+        self.move_any_left();
+        self._show();
     },
 
     show_extra_right: function(node) {
@@ -295,7 +297,8 @@ cc.Class({
         // 显示
         tool.show_node(self.extra_right);
         // 滑动到右边
-        self.show_any_right();
+        self.move_any_right();
+        self._show();
     },
 
     // ====================================================================================
